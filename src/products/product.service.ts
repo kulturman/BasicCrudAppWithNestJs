@@ -1,25 +1,43 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { ProductDto } from "./dtos/product.dto";
-import { Product } from "./product.model";
+import { InjectRepository } from "@nestjs/typeorm";
+import { CreateProductDto } from "./dtos/create-product.dto";
+import { Product } from './entities/product.entity';
+import { Repository } from "typeorm";
+import { UpdateProductDto } from "./dtos/update-product.dto";
 
 @Injectable()
 export class ProductService {
-    private readonly products: Product[] = [];
-
+    constructor(@InjectRepository(Product) private productRepository: Repository<Product>) {}
+    
     getAll() {
-        return this.products;
+        return this.productRepository.find();
     }
 
-    addProduct(productDto: ProductDto) {
-        this.products.push(new Product(new Date().getMilliseconds(), productDto.name));
+    addProduct(CreateProductDto: CreateProductDto) {
+        this.productRepository.insert(
+            new Product(CreateProductDto.name, CreateProductDto.price)
+        );
     }
 
-    getProduct(id: number) {
-        const product = this.products.find(p => p.id === id);
-        if (product == null) {
-            throw new NotFoundException(`Product ${id} not found`);
+    async updateProduct(id: number, updateProductDto: UpdateProductDto) {
+        const product = await this.productRepository.findOne(id);
+        if (!product) {
+            throw new NotFoundException();
         }
+        product.name = updateProductDto.name;
+        product.price = updateProductDto.price;
+        this.productRepository.save(product);
+    }
 
+    async getProduct(id: number): Promise<Product> {
+        const product = await this.productRepository.findOne(id);
+        if (!product) {
+            throw new NotFoundException();
+        }
         return product;
+    }
+
+    deleteProduct(id: number) {
+        this.productRepository.delete(id);
     }
 }

@@ -1,5 +1,4 @@
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
-import { Product } from './products/entities/product.entity';
 
 const connectionOptions: MysqlConnectionOptions = {
   type: 'mysql',
